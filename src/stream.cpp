@@ -4212,26 +4212,14 @@ namespace stream {
 
         // If this is the last non-control-only session, invoke the platform callbacks
         if (unregister_video_session() == 0) {
-          bool restore_display_state { true };
-          if (proc::proc.running()) {
-            tray_state::set_paused(proc::proc.get_last_run_app_name());
-#if defined SUNSHINE_TRAY && SUNSHINE_TRAY >= 1
-            system_tray::update_tray_pausing(proc::proc.get_last_run_app_name());
-#endif
+          // 不管应用是否在运行，断开后统一恢复显示状态
+          tray_state::set_idle(proc::proc.get_last_run_app_name()); 
+          #if defined SUNSHINE_TRAY && SUNSHINE_TRAY >= 1
+          system_tray::update_tray_stopped(proc::proc.get_last_run_app_name());
+          #endif
 
-            // TODO: make this configurable per app
-            restore_display_state = false;
-          }
-          else {
-            tray_state::set_idle(proc::proc.get_last_run_app_name());
-#if defined SUNSHINE_TRAY && SUNSHINE_TRAY >= 1
-            system_tray::update_tray_stopped(proc::proc.get_last_run_app_name());
-#endif
-          }
-
-          if (restore_display_state) {
-            display_device::session_t::get().restore_state();
-          }
+          // 直接恢复显示器状态
+          display_device::session_t::get().restore_state();
 
 #ifdef _WIN32
           // Restore the touch-keyboard registry transaction started at
